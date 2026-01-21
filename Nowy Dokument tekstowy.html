@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>CS2 Simulator - Real Economy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0d1015;
+            --panel-bg: rgba(22, 27, 35, 0.7);
+            --blue: #4b69ff;
+            --purple: #8847ff;
+            --pink: #d32ce6;
+            --red: #eb4b4b;
+            --gold: #e4ae39;
+            --text-main: #ececec;
+            --accent: #5dd465;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 50% 0%, #2a3240 0%, #0d1015 80%);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* UI ELEMENTS */
+        .top-bar {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .balance-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .money { 
+            color: var(--accent); 
+            font-weight: 700; 
+            font-size: 20px;
+            letter-spacing: 1px;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        /* BUTTON ADD MONEY */
+        #btn-add-money {
+            background: #2a3340;
+            border: 1px solid #444;
+            color: #ccc;
+            border-radius: 20px;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        #btn-add-money.ready {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(93, 212, 101, 0.4);
+        }
+        #btn-add-money.ready:hover { transform: scale(1.05); }
+
+        /* RULETKA */
+        .roulette-wrapper { margin: 50px 0; position: relative; }
+        .roulette-container {
+            width: 750px; height: 200px;
+            background: linear-gradient(to bottom, #080a0e, #13161d);
+            position: relative; overflow: hidden;
+            border-top: 2px solid #333; border-bottom: 2px solid #333;
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.8);
+        }
+        .marker {
+            position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
+            background: #ffd700; z-index: 10; transform: translateX(-50%);
+            box-shadow: 0 0 15px #ffd700;
+        }
+        .track { display: flex; position: absolute; top: 15px; left: 0; will-change: transform; }
+        
+        .card {
+            width: 140px; height: 170px; margin: 0 5px;
+            background: linear-gradient(145deg, #1e242d, #161920);
+            flex-shrink: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            border-bottom: 4px solid #444; border-radius: 6px;
+            position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at center, var(--glow-color, transparent) 0%, transparent 70%);
+            opacity: 0.15; z-index: 0;
+        }
+        .card img { width: 120px; height: 90px; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); z-index: 1; }
+        .card span { font-size: 10px; color: #aaa; margin-top: 15px; text-align: center; font-weight: 500; z-index: 1; padding: 0 5px; }
+
+        /* CASES */
+        .cases-area { display: flex; gap: 40px; margin-bottom: 50px; }
+        .case-box {
+            background: var(--panel-bg); padding: 30px; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05); text-align: center;
+            width: 220px; transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .case-box:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+        .case-box img { width: 180px; height: 130px; object-fit: contain; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3)); transition: 0.3s; }
+        .case-box:hover img { transform: scale(1.05) rotate(2deg); }
+        .price-tag { display: inline-block; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 5px; font-size: 12px; color: #ccc; margin: 10px 0; }
+        .btn-open {
+            background: linear-gradient(90deg, #3d8c40 0%, #28a745 100%);
+            color: white; border: none; padding: 12px; width: 100%; border-radius: 8px;
+            cursor: pointer; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; transition: 0.2s;
+        }
+        .btn-open:hover { filter: brightness(1.15); box-shadow: 0 0 20px rgba(40, 167, 69, 0.3); }
+        .btn-open:disabled { filter: grayscale(1); cursor: not-allowed; opacity: 0.5; }
+
+        /* INVENTORY */
+        .inventory {
+            width: 900px; background: var(--panel-bg); padding: 40px;
+            border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 50px;
+        }
+        .inv-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px; max-height: 500px; overflow-y: auto; padding-right: 10px;
+        }
+        .inv-grid::-webkit-scrollbar { width: 6px; }
+        .inv-grid::-webkit-scrollbar-track { background: #111; }
+        .inv-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        
+        .inv-item {
+            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;
+            border-bottom: 3px solid transparent; text-align: center; transition: 0.2s;
+        }
+        .inv-item:hover { background: rgba(255,255,255,0.05); }
+        .inv-item img { width: 100%; height: 70px; object-fit: contain; margin-bottom: 8px; }
+        .inv-name { font-size: 11px; height: 28px; overflow: hidden; margin-bottom: 8px; opacity: 0.8; }
+        .inv-actions { display: flex; gap: 5px; }
+        .btn-small { flex: 1; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; transition: 0.2s; color: white;}
+        .btn-inspect { background: rgba(255,255,255,0.05); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-inspect:hover { background: rgba(255,255,255,0.2); color: white; }
+        
+        /* KOLOROWY GUZIK SPRZEDAŻY */
+        .btn-sell { 
+            background: rgba(0,0,0,0.4); 
+            color: var(--btn-color); 
+            border: 1px solid var(--btn-color);
+            transition: all 0.3s ease;
+        }
+        .btn-sell:hover { 
+            background: var(--btn-color); 
+            color: #fff; box-shadow: 0 0 15px var(--btn-color);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* MODALS */
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; align-items: center; justify-content: center; z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1b2029, #13161c); padding: 50px;
+            border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; max-width: 400px; width: 90%;
+        }
+        .win-glow {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 300px; height: 300px; background: radial-gradient(circle, var(--win-color) 0%, transparent 70%);
+            opacity: 0.2; pointer-events: none; z-index: 0;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* POPRAWIONY INSPECT - ZMNIEJSZONY */
+        #inspectOverlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200;
+        }
+        #inspectImg { 
+            /* ZMNIEJSZONE WYMIARY */
+            width: auto; height: auto;
+            max-width: 450px; /* Maksymalna szerokość obrazka */
+            max-height: 400px; /* Maksymalna wysokość obrazka */
+            object-fit: contain; 
+            transition: transform 0.05s linear; 
+            cursor: zoom-in; 
+            filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
+            margin-bottom: 20px;
+        }
+        .close-btn { position: absolute; top: 30px; right: 40px; font-size: 40px; cursor: pointer; color: white; opacity: 0.5; transition: 0.2s; }
+        .close-btn:hover { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="balance-card">
+            <span style="font-size: 12px; color: #888; text-transform: uppercase;">Portfel</span>
+            <span class="money" id="balanceDisplay">0.00 $</span>
+            
+            <button id="btn-add-money" onclick="tryAddFunds()">
+                Odbierz 10 $
+            </button>
+        </div>
+    </div>
+
+    <div class="roulette-wrapper">
+        <div class="marker"></div>
+        <div class="roulette-container">
+            <div id="rollerTrack" class="track"></div>
+        </div>
+    </div>
+
+    <div class="cases-area">
+        <div class="case-box">
+            <img src="assets/cases/kilowatt.png" onerror="this.src='https://placehold.co/200x150/1a1d23/FFF?text=Kilowatt+Case'">
+            <h3 style="margin: 10px 0;">Kilowatt Case</h3>
+            <div class="price-tag">Cena: 2.50 $</div>
+            <button id="btn-kilowatt" class="btn-open" onclick="startOpening('kilowatt', 2.50)">Otwórz</button>
+        </div>
+        
+        <div class="case-box">
+            <img src="assets/cases/revolution.png" onerror="this.src='https://placehold.co/200x150/1a1d23/FFF?text=Revolution+Case'">
+            <h3 style="margin: 10px 0;">Revolution Case</h3>
+            <div class="price-tag">Cena: 5.00 $</div>
+            <button id="btn-revolution" class="btn-open" onclick="startOpening('revolution', 5.00)">Otwórz</button>
+        </div>
+    </div>
+
+    <div class="inventory">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
+            <h2 style="margin: 0; font-weight: 300; letter-spacing: 1px;">Twój Ekwipunek</h2>
+            <span id="itemCount" style="color: #666; font-size: 12px;">0 przedmiotów</span>
+        </div>
+        <div id="invGrid" class="inv-grid"></div>
+    </div>
+
+    <div id="winModal" class="modal">
+        <div class="modal-content">
+            <div id="winGlow" class="win-glow"></div>
+            <h1 style="margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; font-size: 24px;">Wylosowano</h1>
+            <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 20px;"></div>
+            
+            <img id="winImg" src="" style="width:200px; margin: 10px 0; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));">
+            
+            <h2 id="winName" style="margin: 20px 0 5px 0; font-size: 18px;"></h2>
+            <p id="winRarity" style="color: #666; font-size: 12px; margin-bottom: 30px; text-transform: uppercase; font-weight: bold;"></p>
+            
+            <button class="btn-open" onclick="closeWin()">Zachowaj</button>
+        </div>
+    </div>
+
+    <div id="inspectOverlay">
+        <div class="close-btn" onclick="closeInspect()">×</div>
+        <img id="inspectImg" src="" onmousemove="zoom(event)" onmouseleave="resetZoom()">
+        <h2 id="inspectTitle" style="margin-top: 10px; letter-spacing: 2px; font-weight: 300;"></h2>
+    </div>
+
+<script>
+    /* DANE PLIKÓW SKÓREK */
+    const PATH = "assets/skins/";
+    
+    /* DEFINICJA RZADKOŚCI */
+    const RARITY = {
+        BLUE:   { id: 'blue',   color: '#4b69ff', label: 'Mil-Spec Grade', weight: 8000 },
+        PURPLE: { id: 'purple', color: '#8847ff', label: 'Restricted',     weight: 1500 },
+        PINK:   { id: 'pink',   color: '#d32ce6', label: 'Classified',     weight: 400 },
+        RED:    { id: 'red',    color: '#eb4b4b', label: 'Covert',         weight: 80 },
+        GOLD:   { id: 'gold',   color: '#ffd700', label: '★ Rare Special Item ★', weight: 20 }
+    };
+
+    /* LISTA SKÓREK */
+    const SKINS = {
+        kilowatt: [
+            { name: 'Dual Berettas | Hideout', rarity: RARITY.BLUE, price: 0.10, img: 'db_hideout.png' },
+            { name: 'UMP-45 | Motorized', rarity: RARITY.BLUE, price: 0.12, img: 'ump_motor.png' },
+            { name: 'Glock-18 | Block-18', rarity: RARITY.PURPLE, price: 1.50, img: 'glock_block.png' },
+            { name: 'Sawed-Off | Analog', rarity: RARITY.PURPLE, price: 1.20, img: 'sawed_analog.png' },
+            { name: 'M4A1-S | Black Lotus', rarity: RARITY.PINK, price: 25.0, img: 'm4a1_lotus.png' },
+            { name: 'AK-47 | Inheritance', rarity: RARITY.RED, price: 140.0, img: 'ak_inheritance.png' },
+            { name: '★ Kukri Knife | Fade', rarity: RARITY.GOLD, price: 1100.0, img: 'kukri_fade.png' }
+        ],
+        revolution: [
+            { name: 'P250 | Re.built', rarity: RARITY.BLUE, price: 0.15, img: 'p250_rebuilt.png' },
+            { name: 'Tec-9 | Rebel', rarity: RARITY.BLUE, price: 0.18, img: 'tec9_rebel.png' },
+            { name: 'R8 Revolver | Banana', rarity: RARITY.PURPLE, price: 2.50, img: 'r8_banana.png' },
+            { name: 'AWP | Duality', rarity: RARITY.PINK, price: 15.0, img: 'awp_duality.png' },
+            { name: 'M4A4 | Temukau', rarity: RARITY.RED, price: 120.0, img: 'm4a4_temukau.png' },
+            { name: '★ Karambit | Doppler', rarity: RARITY.GOLD, price: 1500.0, img: 'karambit_doppler.png' }
+        ]
+    };
+
+    let balance = parseFloat(localStorage.getItem('cs_balance')) || 20.00;
+    let inv = JSON.parse(localStorage.getItem('cs_inv')) || [];
+    let isRolling = false;
+    
+    // COOLDOWN CONFIG
+    const CLAIM_AMOUNT = 10.00;
+    const COOLDOWN_MINUTES = 10;
+    const COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
+
+    // --- LOGIKA DROPU ---
+    function getWeightedItem(caseId) {
+        const pool = SKINS[caseId];
+        let totalWeight = 0;
+        pool.forEach(item => totalWeight += item.rarity.weight);
+        let random = Math.random() * totalWeight;
+        for (const item of pool) {
+            if (random < item.rarity.weight) return item;
+            random -= item.rarity.weight;
+        }
+        return pool[0];
+    }
+
+    function refresh() {
+        document.getElementById('balanceDisplay').innerText = balance.toFixed(2) + " $";
+        document.getElementById('itemCount').innerText = inv.length + " item(s)";
+        
+        const grid = document.getElementById('invGrid');
+        grid.innerHTML = '';
+        const sortedInv = [...inv].sort((a, b) => b.price - a.price);
+
+        sortedInv.forEach((item, index) => {
+            const originalIndex = inv.indexOf(item); 
+            grid.innerHTML += `
+                <div class="inv-item" style="border-bottom-color:${item.rarity.color}">
+                    <img src="${PATH + item.img}" onerror="this.src='https://via.placeholder.com/100?text=?'">
+                    <div class="inv-name" style="color:${item.rarity.color}">${item.name}</div>
+                    <div class="inv-actions">
+                        <button class="btn-small btn-inspect" onclick="openInspect('${item.img}', '${item.name}')">👁</button>
+                        <button class="btn-small btn-sell" style="--btn-color: ${item.rarity.color}" onclick="sell(${originalIndex})">$${item.price.toFixed(2)}</button>
+                    </div>
+                </div>`;
+        });
+
+        localStorage.setItem('cs_balance', balance);
+        localStorage.setItem('cs_inv', JSON.stringify(inv));
+        
+        document.getElementById('btn-kilowatt').disabled = isRolling || balance < 2.50;
+        document.getElementById('btn-revolution').disabled = isRolling || balance < 5.00;
+    }
+
+    // --- SYSTEM CZASOWY PIENIĘDZY ---
+    function tryAddFunds() {
+        const lastClaim = parseInt(localStorage.getItem('cs_last_claim')) || 0;
+        const now = Date.now();
+
+        if (now - lastClaim >= COOLDOWN_MS) {
+            // Można odebrać
+            balance += CLAIM_AMOUNT;
+            localStorage.setItem('cs_last_claim', now);
+            refresh();
+            updateTimerButton(); // Odśwież guzik natychmiast
+            
+            // Prosty efekt wizualny
+            const btn = document.getElementById('btn-add-money');
+            btn.innerText = "+ 10.00 $ DODANE!";
+            setTimeout(updateTimerButton, 2000);
+        } else {
+            // Kliknięcie podczas cooldownu (zabezpieczenie)
+            const remaining = Math.ceil((COOLDOWN_MS - (now - lastClaim)) / 1000);
+            alert(`Musisz poczekać jeszcze ${remaining} sekund!`);
+        }
+    }
+
+    function updateTimerButton() {
+        const btn = document.getElementById('btn-add-money');
+        const lastClaim = parseInt(localStorage.getItem('cs_last_claim')) || 0;
+        const now = Date.now();
+        const diff = now - lastClaim;
+
+        if (diff >= COOLDOWN_MS) {
+            // Gotowe do odebrania
+            btn.innerText = `ODBIERZ +${CLAIM_AMOUNT}$`;
+            btn.classList.add('ready');
+            btn.disabled = false;
+        } else {
+            // Odliczanie
+            const remainingMs = COOLDOWN_MS - diff;
+            const minutes = Math.floor(remainingMs / 60000);
+            const seconds = Math.floor((remainingMs % 60000) / 1000);
+            const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            btn.innerText = `Odbierz za ${timeStr}`;
+            btn.classList.remove('ready');
+            // Nie blokujemy disabled całkowicie, żeby kliknięcie pokazało alert (opcjonalne),
+            // ale tutaj zostawimy aktywne, żeby user widział timer.
+        }
+    }
+
+    // --- LOGIKA OTWIERANIA ---
+    function startOpening(caseId, cost) {
+        if (isRolling || balance < cost) return;
+        
+        isRolling = true; balance -= cost; refresh();
+
+        const track = document.getElementById('rollerTrack');
+        track.style.transition = "none";
+        track.style.transform = "translateX(0)";
+        track.innerHTML = "";
+
+        const winner = getWeightedItem(caseId);
+        
+        for (let i = 0; i < 70; i++) {
+            let item = (i === 60) ? winner : getWeightedItem(caseId);
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.setProperty('--glow-color', item.rarity.color);
+            card.style.borderBottomColor = item.rarity.color;
+            card.innerHTML = `<img src="${PATH + item.img}" onerror="this.src='https://via.placeholder.com/100/222/FFF?text=CS2'"><span style="color:${item.rarity.color}">${item.name}</span>`;
+            track.appendChild(card);
+        }
+
+        setTimeout(() => {
+            const randomOffset = Math.floor(Math.random() * 100) - 50; 
+            const pos = (60 * 150) + 75 - 375 + randomOffset;
+            track.style.transition = "transform 6s cubic-bezier(0.15, 0, 0, 1)";
+            track.style.transform = `translateX(-${pos}px)`;
+        }, 50);
+
+        setTimeout(() => {
+            inv.push(winner);
+            const winModal = document.getElementById('winModal');
+            document.getElementById('winImg').src = PATH + winner.img;
+            document.getElementById('winName').innerText = winner.name;
+            document.getElementById('winName').style.color = winner.rarity.color;
+            document.getElementById('winRarity').innerText = winner.rarity.label;
+            document.getElementById('winRarity').style.color = winner.rarity.color;
+            document.getElementById('winGlow').style.setProperty('--win-color', winner.rarity.color);
+            winModal.style.display = 'flex';
+            isRolling = false;
+            refresh();
+        }, 6500);
+    }
+
+    function sell(index) { balance += inv[index].price; inv.splice(index, 1); refresh(); }
+    function closeWin() { document.getElementById('winModal').style.display = 'none'; }
+    
+    // --- INSPECT & ZOOM ---
+    function openInspect(img, name) {
+        document.getElementById('inspectImg').src = PATH + img;
+        document.getElementById('inspectTitle').innerText = name;
+        document.getElementById('inspectOverlay').style.display = 'flex';
+    }
+    function closeInspect() { document.getElementById('inspectOverlay').style.display = 'none'; }
+    function zoom(e) {
+        const img = document.getElementById('inspectImg');
+        const rect = img.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        img.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+        img.style.transform = "scale(2)"; /* Mniejszy zoom, bo obrazek jest mniejszy */
+    }
+    function resetZoom() { document.getElementById('inspectImg').style.transform = "scale(1)"; }
+
+    // Start
+    refresh();
+    updateTimerButton();
+    setInterval(updateTimerButton, 1000); // Odświeżanie timera co sekundę
+</script>
+</body>
+</html>
