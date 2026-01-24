@@ -2,544 +2,318 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CS2 Simulator - Real Economy</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sebastyano | Trainz Maps Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0d1015;
-            --panel-bg: rgba(22, 27, 35, 0.7);
-            --blue: #4b69ff;
-            --purple: #8847ff;
-            --pink: #d32ce6;
-            --red: #eb4b4b;
-            --gold: #e4ae39;
-            --text-main: #ececec;
-            --accent: #5dd465;
+            --bg: #05070a;
+            --surface: #0f1218;
+            --accent: #2ecc71;       
+            --text: #ffffff;
+            --text-muted: #8a939e;
+            --glass: rgba(255, 255, 255, 0.03);
+            --gradient: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at 50% 0%, #2a3240 0%, #0d1015 80%);
-            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             margin: 0;
+            padding: 0;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent; /* Usuwa podświetlenie tapnięcia na mobile */
         }
 
-        /* UI ELEMENTS */
-        .top-bar {
-            width: 100%;
-            padding: 15px;
-            box-sizing: border-box; /* Ważne dla paddingów */
+        /* --- ANIMACJE --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+
+        /* --- NAGŁÓWEK --- */
+        header {
+            padding: 100px 20px 140px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            position: sticky; /* Pasek przyklejony do góry */
-            top: 0;
-            z-index: 50;
-            backdrop-filter: blur(5px);
-        }
-
-        .balance-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px 15px;
-            border-radius: 50px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            display: flex;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            flex-wrap: wrap;
-            justify-content: center;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(46, 204, 113, 0.15) 0%, transparent 70%);
+            position: relative;
         }
 
-        .money { 
-            color: var(--accent); 
-            font-weight: 700; 
-            font-size: 18px;
-            letter-spacing: 1px;
-            min-width: 60px;
-            text-align: right;
-        }
-
-        /* BUTTON ADD MONEY */
-        #btn-add-money {
-            background: #2a3340;
-            border: 1px solid #444;
-            color: #ccc;
-            border-radius: 20px;
-            padding: 8px 12px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: bold;
-            transition: 0.3s;
-            white-space: nowrap;
-        }
-        #btn-add-money.ready {
-            background: var(--accent);
-            color: #000;
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(93, 212, 101, 0.4);
-        }
-        #btn-add-money.ready:active { transform: scale(0.95); }
-
-        /* RULETKA - RESPONSIVE */
-        .roulette-wrapper { 
-            margin: 30px 0; 
-            position: relative; 
-            width: 100%; 
-            display: flex;
-            justify-content: center;
-        }
-        
-        .roulette-container {
-            width: 100%; 
-            max-width: 750px; /* Nie szersze niż 750px */
-            height: 200px;
-            background: linear-gradient(to bottom, #080a0e, #13161d);
-            position: relative; overflow: hidden;
-            border-top: 2px solid #333; border-bottom: 2px solid #333;
-            box-shadow: inset 0 0 80px rgba(0,0,0,0.8);
-        }
-        
-        /* Dostosowanie ruletki do małych ekranów */
-        @media (max-width: 600px) {
-            .roulette-container {
-                height: 160px; /* Nieco niższa na telefonie */
-            }
-            .card {
-                height: 130px !important; /* Mniejsze karty */
-                width: 110px !important;
-            }
-            .card img {
-                width: 90px !important;
-                height: 70px !important;
-            }
-            .track { top: 15px; }
-        }
-
-        .marker {
-            position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
-            background: #ffd700; z-index: 10; transform: translateX(-50%);
-            box-shadow: 0 0 15px #ffd700;
-        }
-        .track { display: flex; position: absolute; top: 15px; left: 0; will-change: transform; }
-        
-        .card {
-            width: 140px; height: 170px; margin: 0 5px;
-            background: linear-gradient(145deg, #1e242d, #161920);
-            flex-shrink: 0; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            border-bottom: 4px solid #444; border-radius: 6px;
-            position: relative; overflow: hidden;
-        }
-        .card::before {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(circle at center, var(--glow-color, transparent) 0%, transparent 70%);
-            opacity: 0.15; z-index: 0;
-        }
-        .card img { width: 120px; height: 90px; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); z-index: 1; }
-        .card span { font-size: 10px; color: #aaa; margin-top: 15px; text-align: center; font-weight: 500; z-index: 1; padding: 0 5px; }
-
-        /* CASES - FLEX WRAP */
-        .cases-area { 
-            display: flex; 
-            gap: 20px; 
-            margin-bottom: 40px; 
-            flex-wrap: wrap; /* Pozwala skrzynkom spaść niżej */
-            justify-content: center;
-            padding: 0 10px;
-        }
-        .case-box {
-            background: var(--panel-bg); padding: 20px; border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05); text-align: center;
-            width: 160px; /* Trochę węższe */
-            flex-grow: 1;
-            max-width: 220px;
-            transition: 0.3s; position: relative; overflow: hidden;
-        }
-        .case-box img { width: 100%; height: 100px; object-fit: contain; }
-        
-        .btn-open {
-            background: linear-gradient(90deg, #3d8c40 0%, #28a745 100%);
-            color: white; border: none; padding: 12px; width: 100%; border-radius: 8px;
-            cursor: pointer; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; transition: 0.2s;
-            touch-action: manipulation;
-        }
-        .btn-open:active { transform: scale(0.98); }
-
-        /* INVENTORY - RESPONSIVE */
-        .inventory {
-            width: 90%; 
-            max-width: 900px; 
-            background: var(--panel-bg); 
-            padding: 20px;
-            box-sizing: border-box;
-            border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 50px;
-        }
-        .inv-grid {
-            display: grid; 
-            /* Mniejsze kafelki na mobile: minmax(120px...) */
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 5px;
-        }
-        
-        .inv-item {
-            background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px;
-            border-bottom: 3px solid transparent; text-align: center; transition: 0.2s;
-        }
-        .inv-item img { width: 100%; height: 60px; object-fit: contain; margin-bottom: 5px; }
-        .inv-name { font-size: 10px; height: 24px; overflow: hidden; margin-bottom: 5px; opacity: 0.8; }
-        .inv-actions { display: flex; gap: 4px; }
-        .btn-small { flex: 1; border: none; padding: 6px 0; border-radius: 4px; cursor: pointer; font-size: 9px; font-weight: bold; color: white;}
-        
-        /* KOLOROWY GUZIK SPRZEDAŻY */
-        .btn-sell { 
-            background: rgba(0,0,0,0.4); 
-            color: var(--btn-color); 
-            border: 1px solid var(--btn-color);
-        }
-
-        /* MODALS */
-        .modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-            display: none; align-items: center; justify-content: center; z-index: 100;
-            backdrop-filter: blur(8px);
-            padding: 20px; /* Padding dla mobile */
-        }
-        .modal-content {
-            background: linear-gradient(135deg, #1b2029, #13161c); 
-            padding: 30px 20px;
-            border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative; max-width: 400px; width: 100%;
-            box-sizing: border-box;
-        }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        /* INSPECT */
-        #inspectOverlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200;
-            padding: 20px;
-        }
-        #inspectImg { 
-            width: 100%; 
-            height: auto;
-            max-width: 450px; 
-            max-height: 50vh; 
-            object-fit: contain; 
-            transition: transform 0.1s linear; 
-            filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
+        header .author-tag {
+            background: var(--glass);
+            padding: 8px 20px;
+            border-radius: 100px;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             margin-bottom: 20px;
-        }
-        /* Zoom tylko na urządzeniach z myszką */
-        @media (hover: hover) {
-            #inspectImg { cursor: zoom-in; }
+            color: var(--accent);
+            animation: fadeInUp 0.8s ease-out;
         }
 
-        .close-btn { 
-            position: absolute; 
-            top: 20px; 
-            right: 20px; 
-            font-size: 35px; 
-            cursor: pointer; 
-            color: white; 
-            background: rgba(255,255,255,0.1);
-            width: 40px; height: 40px;
-            line-height: 40px; text-align: center;
+        header h1 {
+            font-size: clamp(2.5rem, 10vw, 5rem);
+            margin: 0;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        header p {
+            color: var(--text-muted);
+            max-width: 600px;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        /* --- KONTENER KART (FIX DLA MOBILE) --- */
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: -60px auto 60px; /* Delikatny margines ujemny */
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .map-grid {
+            display: grid;
+            /* Elastyczna siatka: 1 kolumna na mobile, więcej na PC */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+        }
+
+        .map-card {
+            background: var(--surface);
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .img-container { height: 220px; overflow: hidden; }
+        .map-img { width: 100%; height: 100%; background-size: cover; background-position: center; transition: 0.5s; }
+        .map-card:hover .map-img { transform: scale(1.1); }
+
+        .map-body { padding: 25px; display: flex; flex-direction: column; flex-grow: 1; }
+        .map-body h2 { margin: 0 0 10px 0; font-size: 1.4rem; }
+        .map-body p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.4; flex-grow: 1; }
+
+        .map-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .author-small { font-size: 0.75rem; color: var(--accent); font-weight: 700; }
+
+        /* --- MODAL --- */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(5, 7, 10, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            overflow-y: auto;
+            opacity: 0;
+            transition: 0.3s;
+        }
+        
+        .modal.active { opacity: 1; }
+
+        .modal-content {
+            max-width: 800px;
+            margin: 20px auto;
+            background: var(--surface);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+            transform: translateY(20px);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal.active .modal-content { transform: translateY(0); }
+        .modal-img { width: 100%; height: 300px; object-fit: cover; }
+        .modal-info { padding: 30px; }
+
+        .download-btn {
+            display: inline-block;
+            background: var(--gradient);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 800;
+            transition: 0.3s;
+            animation: pulseGreen 2s infinite;
+            text-align: center;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            animation-play-state: paused;
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+        }
+
+        .close-modal {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            color: white;
+            background: rgba(46, 204, 113, 0.3);
+            width: 45px; height: 45px;
             border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10001;
+            cursor: pointer;
         }
 
+        footer { text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.8rem; margin-top: auto; }
+
+        /* --- POPRAWKI MOBILNE --- */
+        @media (max-width: 768px) {
+            header { padding: 60px 20px 100px; }
+            .container { margin-top: -40px; }
+            .map-body { padding: 20px; }
+            .modal-info { padding: 20px; }
+            .modal-info h2 { font-size: 1.8rem !important; }
+            .download-btn { width: 100%; box-sizing: border-box; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div class="balance-card">
-            <span style="font-size: 11px; color: #888; text-transform: uppercase;">Portfel</span>
-            <span class="money" id="balanceDisplay">0.00 $</span>
-            
-            <button id="btn-add-money" onclick="tryAddFunds()">
-                Odbierz 10 $
-            </button>
-        </div>
+    <div class="close-modal" id="closeBtn" onclick="closeModal()" style="display: none;">&times;</div>
+
+    <header>
+        <div class="author-tag">By Sebastyano</div>
+        <h1>World of Trainz</h1>
+        <p>Ekskluzywna kolekcja map kolejowych stworzonych z dbałością o każdy detal i realizm.</p>
+    </header>
+
+    <div class="container">
+        <div id="gallery" class="map-grid"></div>
     </div>
 
-    <div class="roulette-wrapper">
-        <div class="marker"></div>
-        <div class="roulette-container">
-            <div id="rollerTrack" class="track"></div>
-        </div>
+    <div id="modal" class="modal">
+        <div class="modal-content" id="modalContent"></div>
     </div>
 
-    <div class="cases-area">
-        <div class="case-box">
-            <img src="assets/cases/kilowatt.png" onerror="this.src='https://placehold.co/200x150/1a1d23/FFF?text=Kilowatt+Case'">
-            <h3 style="margin: 10px 0; font-size: 16px;">Kilowatt Case</h3>
-            <div class="price-tag">Cena: 2.50 $</div>
-            <button id="btn-kilowatt" class="btn-open" onclick="startOpening('kilowatt', 2.50)">Otwórz</button>
-        </div>
-        
-        <div class="case-box">
-            <img src="assets/cases/revolution.png" onerror="this.src='https://placehold.co/200x150/1a1d23/FFF?text=Revolution+Case'">
-            <h3 style="margin: 10px 0; font-size: 16px;">Revolution Case</h3>
-            <div class="price-tag">Cena: 5.00 $</div>
-            <button id="btn-revolution" class="btn-open" onclick="startOpening('revolution', 5.00)">Otwórz</button>
-        </div>
-    </div>
+    <footer>
+        &copy; 2026 Created by Sebastyano for Trainz Community
+    </footer>
 
-    <div class="inventory">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
-            <h2 style="margin: 0; font-weight: 300; letter-spacing: 1px; font-size: 18px;">Twój Ekwipunek</h2>
-            <span id="itemCount" style="color: #666; font-size: 12px;">0 items</span>
-        </div>
-        <div id="invGrid" class="inv-grid"></div>
-    </div>
+    <script>
+        const MAPS = [
+            {
+                title: "Węzeł Odrzański",
+                desc: "Ogromna mapa obejmująca dużą stację rozrządową, port rzeczny i liczne zakłady przemysłowe.",
+                img: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&q=80&w=1200",
+                link: "#",
+                type: "Przemysłowa"
+            },
+            {
+                title: "Przełęcz Sudecka",
+                desc: "Górska trasa jednotorowa z lat 70. Klimatyczne stacyjki i strome podjazdy.",
+                img: "https://images.unsplash.com/photo-1541427468627-a89a96e5ca1d?auto=format&fit=crop&q=80&w=1200",
+                link: "#",
+                type: "Górska"
+            },
+            {
+                title: "Szybka Kolej Miejska",
+                desc: "Nowoczesna, zelektryfikowana linia łącząca aglomerację. Gęsty ruch pasażerski.",
+                img: "https://images.unsplash.com/photo-1515165501156-4d824d27a78c?auto=format&fit=crop&q=80&w=1200",
+                link: "#",
+                type: "Pasażerska"
+            }
+        ];
 
-    <div id="winModal" class="modal">
-        <div class="modal-content">
-            <div id="winGlow" class="win-glow"></div>
-            <h1 style="margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; font-size: 20px;">Wylosowano</h1>
-            <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 20px;"></div>
-            
-            <img id="winImg" src="" style="width:150px; margin: 10px 0; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));">
-            
-            <h2 id="winName" style="margin: 15px 0 5px 0; font-size: 16px; word-wrap: break-word;"></h2>
-            <p id="winRarity" style="color: #666; font-size: 11px; margin-bottom: 25px; text-transform: uppercase; font-weight: bold;"></p>
-            
-            <button class="btn-open" onclick="closeWin()">Zachowaj</button>
-        </div>
-    </div>
+        const gallery = document.getElementById('gallery');
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modalContent');
+        const closeBtn = document.getElementById('closeBtn');
 
-    <div id="inspectOverlay">
-        <div class="close-btn" onclick="closeInspect()">×</div>
-        <img id="inspectImg" src="" onmousemove="zoom(event)" onmouseleave="resetZoom()">
-        <h2 id="inspectTitle" style="margin-top: 10px; letter-spacing: 2px; font-weight: 300; font-size: 16px; text-align: center;"></h2>
-        <p style="color: #666; font-size: 12px; margin-top: 5px;">(Dotknij X aby zamknąć)</p>
-    </div>
-
-<script>
-    /* DANE PLIKÓW SKÓREK */
-    const PATH = "assets/skins/";
-    
-    /* DEFINICJA RZADKOŚCI */
-    const RARITY = {
-        BLUE:   { id: 'blue',   color: '#4b69ff', label: 'Mil-Spec Grade', weight: 8000 },
-        PURPLE: { id: 'purple', color: '#8847ff', label: 'Restricted',     weight: 1500 },
-        PINK:   { id: 'pink',   color: '#d32ce6', label: 'Classified',     weight: 400 },
-        RED:    { id: 'red',    color: '#eb4b4b', label: 'Covert',         weight: 80 },
-        GOLD:   { id: 'gold',   color: '#ffd700', label: '★ Rare Special Item ★', weight: 20 }
-    };
-
-    /* LISTA SKÓREK */
-    const SKINS = {
-        kilowatt: [
-            { name: 'Dual Berettas | Hideout', rarity: RARITY.BLUE, price: 0.10, img: 'db_hideout.png' },
-            { name: 'UMP-45 | Motorized', rarity: RARITY.BLUE, price: 0.12, img: 'ump_motor.png' },
-            { name: 'Glock-18 | Block-18', rarity: RARITY.PURPLE, price: 1.50, img: 'glock_block.png' },
-            { name: 'Sawed-Off | Analog', rarity: RARITY.PURPLE, price: 1.20, img: 'sawed_analog.png' },
-            { name: 'M4A1-S | Black Lotus', rarity: RARITY.PINK, price: 25.0, img: 'm4a1_lotus.png' },
-            { name: 'AK-47 | Inheritance', rarity: RARITY.RED, price: 140.0, img: 'ak_inheritance.png' },
-            { name: '★ Kukri Knife | Fade', rarity: RARITY.GOLD, price: 1100.0, img: 'kukri_fade.png' }
-        ],
-        revolution: [
-            { name: 'P250 | Re.built', rarity: RARITY.BLUE, price: 0.15, img: 'p250_rebuilt.png' },
-            { name: 'Tec-9 | Rebel', rarity: RARITY.BLUE, price: 0.18, img: 'tec9_rebel.png' },
-            { name: 'R8 Revolver | Banana', rarity: RARITY.PURPLE, price: 2.50, img: 'r8_banana.png' },
-            { name: 'AWP | Duality', rarity: RARITY.PINK, price: 15.0, img: 'awp_duality.png' },
-            { name: 'M4A4 | Temukau', rarity: RARITY.RED, price: 120.0, img: 'm4a4_temukau.png' },
-            { name: '★ Karambit | Doppler', rarity: RARITY.GOLD, price: 1500.0, img: 'karambit_doppler.png' }
-        ]
-    };
-
-    let balance = parseFloat(localStorage.getItem('cs_balance')) || 20.00;
-    let inv = JSON.parse(localStorage.getItem('cs_inv')) || [];
-    let isRolling = false;
-    
-    // COOLDOWN CONFIG
-    const CLAIM_AMOUNT = 10.00;
-    const COOLDOWN_MINUTES = 10;
-    const COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
-
-    // --- LOGIKA DROPU ---
-    function getWeightedItem(caseId) {
-        const pool = SKINS[caseId];
-        let totalWeight = 0;
-        pool.forEach(item => totalWeight += item.rarity.weight);
-        let random = Math.random() * totalWeight;
-        for (const item of pool) {
-            if (random < item.rarity.weight) return item;
-            random -= item.rarity.weight;
-        }
-        return pool[0];
-    }
-
-    function refresh() {
-        document.getElementById('balanceDisplay').innerText = balance.toFixed(2) + " $";
-        document.getElementById('itemCount').innerText = inv.length + " item(s)";
-        
-        const grid = document.getElementById('invGrid');
-        grid.innerHTML = '';
-        const sortedInv = [...inv].sort((a, b) => b.price - a.price);
-
-        sortedInv.forEach((item, index) => {
-            const originalIndex = inv.indexOf(item); 
-            grid.innerHTML += `
-                <div class="inv-item" style="border-bottom-color:${item.rarity.color}">
-                    <img src="${PATH + item.img}" onerror="this.src='https://via.placeholder.com/100?text=?'">
-                    <div class="inv-name" style="color:${item.rarity.color}">${item.name}</div>
-                    <div class="inv-actions">
-                        <button class="btn-small btn-inspect" onclick="openInspect('${item.img}', '${item.name}')">👁</button>
-                        <button class="btn-small btn-sell" style="--btn-color: ${item.rarity.color}" onclick="sell(${originalIndex})">$${item.price.toFixed(2)}</button>
+        MAPS.forEach((map, index) => {
+            const card = document.createElement('div');
+            card.className = 'map-card';
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.onclick = () => openModal(index);
+            card.innerHTML = `
+                <div class="img-container"><div class="map-img" style="background-image: url('${map.img}')"></div></div>
+                <div class="map-body">
+                    <span style="color:var(--accent); font-size: 0.7rem; font-weight:800; text-transform:uppercase;">${map.type}</span>
+                    <h2 style="margin:5px 0;">${map.title}</h2>
+                    <p>${map.desc}</p>
+                    <div class="map-meta">
+                        <span class="author-small">Sebastyano</span>
+                        <span style="font-size: 0.7rem; color:white; font-weight:bold;">ZOBACZ →</span>
                     </div>
-                </div>`;
+                </div>
+            `;
+            gallery.appendChild(card);
         });
 
-        localStorage.setItem('cs_balance', balance);
-        localStorage.setItem('cs_inv', JSON.stringify(inv));
-        
-        document.getElementById('btn-kilowatt').disabled = isRolling || balance < 2.50;
-        document.getElementById('btn-revolution').disabled = isRolling || balance < 5.00;
-    }
-
-    // --- SYSTEM CZASOWY PIENIĘDZY ---
-    function tryAddFunds() {
-        const lastClaim = parseInt(localStorage.getItem('cs_last_claim')) || 0;
-        const now = Date.now();
-
-        if (now - lastClaim >= COOLDOWN_MS) {
-            // Można odebrać
-            balance += CLAIM_AMOUNT;
-            localStorage.setItem('cs_last_claim', now);
-            refresh();
-            updateTimerButton(); // Odśwież guzik natychmiast
-            
-            // Prosty efekt wizualny
-            const btn = document.getElementById('btn-add-money');
-            btn.innerText = "+ 10.00 $";
-            setTimeout(updateTimerButton, 2000);
-        } else {
-            // Kliknięcie podczas cooldownu (zabezpieczenie)
-            const remaining = Math.ceil((COOLDOWN_MS - (now - lastClaim)) / 1000);
-            alert(`Musisz poczekać jeszcze ${remaining} sekund!`);
-        }
-    }
-
-    function updateTimerButton() {
-        const btn = document.getElementById('btn-add-money');
-        const lastClaim = parseInt(localStorage.getItem('cs_last_claim')) || 0;
-        const now = Date.now();
-        const diff = now - lastClaim;
-
-        if (diff >= COOLDOWN_MS) {
-            // Gotowe do odebrania
-            btn.innerText = `ODBIERZ +${CLAIM_AMOUNT}$`;
-            btn.classList.add('ready');
-            btn.disabled = false;
-        } else {
-            // Odliczanie
-            const remainingMs = COOLDOWN_MS - diff;
-            const minutes = Math.floor(remainingMs / 60000);
-            const seconds = Math.floor((remainingMs % 60000) / 1000);
-            const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            btn.innerText = `Odbierz za ${timeStr}`;
-            btn.classList.remove('ready');
-        }
-    }
-
-    // --- LOGIKA OTWIERANIA ---
-    function startOpening(caseId, cost) {
-        if (isRolling || balance < cost) return;
-        
-        isRolling = true; balance -= cost; refresh();
-
-        const track = document.getElementById('rollerTrack');
-        track.style.transition = "none";
-        track.style.transform = "translateX(0)";
-        track.innerHTML = "";
-
-        const winner = getWeightedItem(caseId);
-        
-        // --- DETEKCJA SZEROKOŚCI DLA MOBILE ---
-        // Sprawdzamy, czy jesteśmy na mobile (poniżej 600px - zgodnie z CSS)
-        const isMobile = window.innerWidth <= 600;
-        // Wymiary z CSS: normalne 140+10margin, mobile 110+10margin
-        const cardWidthFull = isMobile ? 120 : 150; 
-
-        for (let i = 0; i < 70; i++) {
-            let item = (i === 60) ? winner : getWeightedItem(caseId);
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.style.setProperty('--glow-color', item.rarity.color);
-            card.style.borderBottomColor = item.rarity.color;
-            card.innerHTML = `<img src="${PATH + item.img}" onerror="this.src='https://via.placeholder.com/100/222/FFF?text=CS2'"><span style="color:${item.rarity.color}">${item.name}</span>`;
-            track.appendChild(card);
+        function openModal(index) {
+            const map = MAPS[index];
+            modalContent.innerHTML = `
+                <img src="${map.img}" class="modal-img">
+                <div class="modal-info">
+                    <span style="color:var(--accent); font-weight:bold; font-size:0.8rem;">AUTOR: SEBASTYANO</span>
+                    <h2 style="font-size:2rem; margin:10px 0;">${map.title}</h2>
+                    <p style="color:var(--text-muted); margin-bottom:30px;">${map.desc}</p>
+                    <a href="${map.link}" class="download-btn">POBIERZ PACZKĘ (.CDP)</a>
+                </div>
+            `;
+            modal.style.display = 'block';
+            closeBtn.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => modal.classList.add('active'), 10);
         }
 
-        setTimeout(() => {
-            // Pobieramy aktualną szerokość kontenera (może się zmieniać na mobile)
-            const containerWidth = document.querySelector('.roulette-container').offsetWidth;
-            const randomOffset = Math.floor(Math.random() * (cardWidthFull * 0.8)) - (cardWidthFull * 0.4); 
-            
-            // MATH: 60 kart * szerokość + połowa szerokości karty - połowa kontenera (żeby wyśrodkować)
-            const pos = (60 * cardWidthFull) + (cardWidthFull / 2) - (containerWidth / 2) + randomOffset;
-            
-            track.style.transition = "transform 6s cubic-bezier(0.15, 0, 0, 1)";
-            track.style.transform = `translateX(-${pos}px)`;
-        }, 50);
+        function closeModal() {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                closeBtn.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
 
-        setTimeout(() => {
-            inv.push(winner);
-            const winModal = document.getElementById('winModal');
-            document.getElementById('winImg').src = PATH + winner.img;
-            document.getElementById('winName').innerText = winner.name;
-            document.getElementById('winName').style.color = winner.rarity.color;
-            document.getElementById('winRarity').innerText = winner.rarity.label;
-            document.getElementById('winRarity').style.color = winner.rarity.color;
-            document.getElementById('winGlow').style.setProperty('--win-color', winner.rarity.color);
-            winModal.style.display = 'flex';
-            isRolling = false;
-            refresh();
-        }, 6500);
-    }
-
-    function sell(index) { balance += inv[index].price; inv.splice(index, 1); refresh(); }
-    function closeWin() { document.getElementById('winModal').style.display = 'none'; }
-    
-    // --- INSPECT & ZOOM ---
-    function openInspect(img, name) {
-        document.getElementById('inspectImg').src = PATH + img;
-        document.getElementById('inspectTitle').innerText = name;
-        document.getElementById('inspectOverlay').style.display = 'flex';
-    }
-    function closeInspect() { document.getElementById('inspectOverlay').style.display = 'none'; }
-    
-    function zoom(e) {
-        // Blokada zoomu na dotykowych ekranach, żeby nie było dziwnych przeskoków
-        if (window.matchMedia("(hover: none)").matches) return;
-
-        const img = document.getElementById('inspectImg');
-        const rect = img.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
-        const y = (e.clientY - rect.top) / rect.height;
-        img.style.transformOrigin = `${x * 100}% ${y * 100}%`;
-        img.style.transform = "scale(2)"; 
-    }
-    function resetZoom() { document.getElementById('inspectImg').style.transform = "scale(1)"; }
-
-    // Start
-    refresh();
-    updateTimerButton();
-    setInterval(updateTimerButton, 1000); // Odświeżanie timera co sekundę
-</script>
+        window.onclick = (e) => { if(e.target == modal) closeModal(); }
+    </script>
 </body>
 </html>
